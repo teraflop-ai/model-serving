@@ -13,7 +13,8 @@ bash up.sh
 # Check valid deployment
 ```sh
 curl -s https://api.opentela.ai/v1/service/llm/v1/chat/completions \
-  -H "Authorization: Bearer YOUR API KEY -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
   -d '{"model":"moonshotai/Kimi-K3","messages":[{"role":"user","content":"ping"}]}'
 ```
 
