@@ -22,6 +22,7 @@ mkdir -p $RUN/otela
 cat > $RUN/engine.sh <<'ENGINE'
 #!/bin/bash
 export NCCL_SOCKET_IFNAME=ib0 GLOO_SOCKET_IFNAME=ib0 NCCL_SOCKET_FAMILY=IPv4 GLOO_SOCKET_FAMILY=IPv4 NCCL_IB_GID_INDEX=3 NCCL_IB_RETRY_CNT=7 NCCL_IB_TIMEOUT=22
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export SGLANG_HOST_IP=$(ip -o -4 addr show ib0 | awk '{print $4}' | cut -d/ -f1)
 export HF_HUB_OFFLINE=1 PYTHONNOUSERSITE=1 HF_HOME=$D/cache/hf XDG_CACHE_HOME=$D/cache/xdg TRITON_CACHE_DIR=$D/cache/triton TVM_FFI_CACHE_DIR=$D/cache/tvm-ffi/rank-$SLURM_PROCID
 mkdir -p $HF_HOME $XDG_CACHE_HOME $TRITON_CACHE_DIR $TVM_FFI_CACHE_DIR
@@ -31,7 +32,8 @@ exec apptainer exec --nv --bind /e/scratch,/e/data1 $IMAGE sglang serve \
   --nnodes $SLURM_JOB_NUM_NODES --node-rank $SLURM_PROCID --dist-init-addr $HEAD_IP:20000 --dist-timeout 60 \
   --prefill-attention-backend flashmla --decode-attention-backend flashmla \
   --moe-runner-backend marlin \
-  --mem-fraction-static 0.90 --reasoning-parser kimi_k3 --tool-call-parser kimi_k3 \
+  --mem-fraction-static 0.80 --chunked-prefill-size 4096 --max-prefill-tokens 8192 --max-mamba-cache-size 512 \
+  --reasoning-parser kimi_k3 --tool-call-parser kimi_k3 \
   --host 0.0.0.0 --port $PORT
 ENGINE
 
